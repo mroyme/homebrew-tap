@@ -1,4 +1,4 @@
-# Mroyme Tap
+# Madhurjya's Tap
 
 ## How do I install these formulae?
 
