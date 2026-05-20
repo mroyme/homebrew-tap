@@ -1,0 +1,104 @@
+name: autofix
+
+on:
+  issue_comment:
+    types:
+      - created
+
+jobs:
+  autofix:
+    if: >-
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/autofix')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: React to comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'eyes',
+            });
+
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            core.setOutput('head_ref', pr.data.head.ref);
+            core.setOutput('head_repo', pr.data.head.repo.full_name);
+            core.setOutput('head_sha', pr.data.head.sha);
+            core.setOutput('is_fork', pr.data.head.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`);
+
+      - name: Refuse fork PRs
+        if: steps.pr.outputs.is_fork == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '`/autofix` is not supported on fork PRs. Please run `brew style --fix` locally and push the result.',
+            });
+            core.setFailed('Fork PRs are not supported.');
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.pr.outputs.head_repo }}
+          ref: ${{ steps.pr.outputs.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: tap
+
+      - name: Set up git
+        uses: Homebrew/actions/git-user-config@main
+
+      - name: Run brew style --fix
+        working-directory: tap
+        run: brew style --fix .
+
+      - name: Commit and push fixes
+        id: commit
+        working-directory: tap
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No style fixes to apply."
+            exit 0
+          fi
+          git add -A
+          git commit -m "style: apply \`brew style --fix\` via /autofix"
+          git push origin "HEAD:${{ steps.pr.outputs.head_ref }}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Comment result on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changed = '${{ steps.commit.outputs.changed }}' === 'true';
+            const body = changed
+              ? 'Applied `brew style --fix` and pushed the fixes to this branch.'
+              : 'Ran `brew style --fix`; nothing to change.';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
