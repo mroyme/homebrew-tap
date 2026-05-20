@@ -66,6 +66,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Strip GITHUB_TOKEN from global git config
+        run: |
+          git config --global --unset-all http.https://github.com/.extraheader || true
+
       - name: Look up app bot user ID
         id: app-user
         env:
