@@ -4,24 +4,24 @@ cask "dogstatsd-local" do
 
   on_macos do
     on_arm do
-      sha256 "235a5e13625e6315c432852bc07214c3af75b94ba9e42d4ba762e59cf4b1f04c"
+      sha256 "67064ea7dc7e0d3d10205ca37ab736b96b326433dc0d640e8eef6fecb38fb48d"
       url "https://github.com/mroyme/dogstatsd-local/releases/download/v#{version}/dogstatsd-local_darwin_arm64.tar.gz"
       rename "dogstatsd-local_darwin_arm64/dogstatsd-local", "dogstatsd-local"
     end
     on_intel do
-      sha256 "bbc446d8e8a9f64217a63d08bbb4a37825e40342b2d3d2b7cac7657b20cb9825"
+      sha256 "8943257c2ca15cb8e1197035b1af127f2fd1530b6ffdbbb931487947d742c2dc"
       url "https://github.com/mroyme/dogstatsd-local/releases/download/v#{version}/dogstatsd-local_darwin_amd64.tar.gz"
       rename "dogstatsd-local_darwin_amd64/dogstatsd-local", "dogstatsd-local"
     end
   end
   on_linux do
     on_arm do
-      sha256 "d21162457dcf9a02f33faee33ccadffe059b761d5743d898e0c0791b540f8323"
+      sha256 "6c20b22c5f5263029c6e2ab2b8e99229b4913c08807442f31ed935cae965dc34"
       url "https://github.com/mroyme/dogstatsd-local/releases/download/v#{version}/dogstatsd-local_linux_arm64.tar.gz"
       rename "dogstatsd-local_linux_arm64/dogstatsd-local", "dogstatsd-local"
     end
     on_intel do
-      sha256 "b56933dc60c47f8151c28ac7bb06c4e6ca3ab2445401790258e8a2551f69ffd8"
+      sha256 "8b22f03d06641dda128f9f902dee22e16d81da2042214e9a867a63c98385b898"
       url "https://github.com/mroyme/dogstatsd-local/releases/download/v#{version}/dogstatsd-local_linux_amd64.tar.gz"
       rename "dogstatsd-local_linux_amd64/dogstatsd-local", "dogstatsd-local"
     end
